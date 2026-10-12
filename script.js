@@ -5,71 +5,63 @@
    ============================================ */
 
 document.addEventListener("DOMContentLoaded", () => {
-    // --------------------------------------------
     // 1. Dynamic copyright year
-    // --------------------------------------------
-
     const currentYear = document.getElementById("current-year");
 
     if (currentYear) {
         currentYear.textContent = new Date().getFullYear();
     }
 
-
-    // --------------------------------------------
-    // 2. Local visitor counter
-    // --------------------------------------------
-    // Counts visits in this browser only.
-    // This is not a shared or server-side counter.
-
+    // 2. AWS server-side visitor counter
     const visitorCountElement = document.getElementById("visitor-count");
 
     if (visitorCountElement) {
-        const storageKey = "edwardPortfolioVisitCount";
-        const sessionKey = "edwardPortfolioVisitedThisSession";
+        const apiUrl =
+            "https://zt5zhcxm3h.execute-api.eu-north-1.amazonaws.com/count";
 
-        try {
-            let visitCount = Number(localStorage.getItem(storageKey)) || 0;
+        visitorCountElement.textContent = "Loading...";
 
-            // Count one visit per browser session.
-            if (!sessionStorage.getItem(sessionKey)) {
-                visitCount += 1;
+        visitorCountElement.title =
+            "Visitor count retrieved from AWS DynamoDB.";
 
-                localStorage.setItem(storageKey, String(visitCount));
-                sessionStorage.setItem(sessionKey, "true");
-            }
+        fetch(apiUrl, { cache: "no-store" })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(
+                        `Visitor API returned HTTP ${response.status}`
+                    );
+                }
 
-            visitorCountElement.textContent = visitCount.toLocaleString();
-            visitorCountElement.title =
-                "Local browser count, not total website visitors.";
+                return response.json();
+            })
+            .then((data) => {
+                if (
+                    typeof data.count !== "number" ||
+                    !Number.isFinite(data.count)
+                ) {
+                    throw new Error("Invalid visitor count received.");
+                }
 
-            visitorCountElement.setAttribute(
-                "aria-label",
-                `${visitCount} visits recorded in this browser`
-            );
+                visitorCountElement.textContent =
+                    data.count.toLocaleString();
 
-        } catch (error) {
-            // Storage may be unavailable in private or restricted browsing.
-            visitorCountElement.textContent = "Unavailable";
-            console.warn("Visitor counter storage is unavailable.", error);
-        }
+                visitorCountElement.setAttribute(
+                    "aria-label",
+                    `${data.count} visits recorded by the server`
+                );
+            })
+            .catch((error) => {
+                visitorCountElement.textContent = "Unavailable";
+                console.error("AWS visitor counter failed:", error);
+            });
     }
 
-
-    // --------------------------------------------
     // 3. External links security
-    // --------------------------------------------
-
     document.querySelectorAll('a[target="_blank"]').forEach((link) => {
         link.setAttribute("rel", "noopener noreferrer");
     });
 
-
-    // --------------------------------------------
     // 4. Smooth in-page navigation
-    // --------------------------------------------
-    // Applies to links that point to sections on this page.
-
     document.querySelectorAll('a[href^="#"]').forEach((link) => {
         link.addEventListener("click", (event) => {
             const targetId = link.getAttribute("href");
@@ -93,11 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-
-    // --------------------------------------------
     // 5. Console welcome message
-    // --------------------------------------------
-
     console.log(
         "%cEdward Ringa Dume | Cloud & DevOps Engineer",
         "color: #2563eb; font-size: 16px; font-weight: bold;"
