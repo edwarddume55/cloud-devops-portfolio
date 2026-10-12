@@ -1,0 +1,40 @@
+
+name: Cloud Resume CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate project
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate Python syntax
+        run: python -m py_compile backend/visitor_counter.py
+
+      - name: Verify required project files
+        run: |
+          test -f frontend/index.html
+          test -f frontend/style.css
+          test -f frontend/script.js
+          test -f backend/visitor_counter.py
+          test -f infrastructure/main.tf
+          test -f infrastructure/.terraform.lock.hcl
+
+      - name: Verify AWS API endpoint is configured
+        run: grep -q 'https://zt5zhcxm3h.execute-api.eu-north-1.amazonaws.com/count' frontend/script.js
