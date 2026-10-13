@@ -22,13 +22,8 @@ The project uses AWS services to host a static resume website and provide a serv
 
 ### Architecture Diagram
 
-*Add your manually created architecture diagram here.*
-
-Save the exported image as `docs/architecture.png`, then replace this note with:
-
-```markdown
 ![AWS Cloud Resume Challenge Architecture](docs/architecture.png)
-```
+
 
 ### Visitor Counter Flow
 
