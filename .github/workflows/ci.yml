@@ -38,3 +38,20 @@ jobs:
 
       - name: Verify AWS API endpoint is configured
         run: grep -q 'https://zt5zhcxm3h.execute-api.eu-north-1.amazonaws.com/count' frontend/script.js
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.13.0"
+
+      - name: Check Terraform formatting
+        working-directory: infrastructure
+        run: terraform fmt -check -recursive
+
+      - name: Initialize Terraform without backend
+        working-directory: infrastructure
+        run: terraform init -backend=false -input=false
+
+      - name: Validate Terraform configuration
+        working-directory: infrastructure
+        run: terraform validate
